@@ -6,7 +6,7 @@ from plotly.subplots import make_subplots
 from datetime import datetime
 
 # Introduction and explanation of MACD
-st.title('Stock MACD Analyzer')
+st.title('MACD Analyzer')
 st.markdown("""
 This application analyzes the Moving Average Convergence Divergence (MACD), which is a trend-following momentum indicator that shows the relationship between two moving averages of a stock's prices.
 """)

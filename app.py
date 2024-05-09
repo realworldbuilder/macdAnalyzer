@@ -23,7 +23,7 @@ def fetch_and_calculate_macd(stock_symbol, start_date=None):
     df['Signal'] = df['MACD'].ewm(span=9, adjust=False).mean()  # Signal line
     return df
 
-# Input for stock symbol
+# Input for name
 stock_symbol = st.sidebar.text_input('Enter stock symbol', value='AAPL')
 st.sidebar.write("""
 The MACD is calculated by subtracting the 26-period Exponential Moving Average (EMA) from the 12-period EMA. The result of that subtraction is the MACD line.
@@ -64,7 +64,7 @@ if st.sidebar.button('Analyze'):
     fig.update_layout(height=600, width=700, title_text="Stock Analysis", template="plotly_white")
     st.plotly_chart(fig, use_container_width=True)
 
-    # Displaying last 5 MACD crossovers and performance
+    # Dataframe displaying last 5 MACD crossovers and performance
     if not post_cross_data.empty:
         st.write('Last 5 MACD Crossovers and Subsequent 10-day Performance:')
         st.table(post_cross_data)

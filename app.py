@@ -2,22 +2,30 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import numpy as np
-import plotly.graph_objs as go
+import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
+# Streamlit page configuration
 st.set_page_config(layout="wide")
 
+# Title of the app
 st.title('Stock MACD and RSI Analysis')
 
 # User input for ticker symbol
 ticker = st.text_input('Enter stock ticker:', 'AAPL')
 
 # User input for date range
-start_date = st.date_input('Start date', datetime.today() - timedelta(days=365))
-end_date = st.date_input('End date', datetime.today())
+default_start_date = datetime.today() - timedelta(days=365)
+default_end_date = datetime.today()
+start_date = st.date_input('Start date', default_start_date)
+end_date = st.date_input('End date', default_end_date)
 
-# Fetch data
-data = yf.download(ticker, start=start_date, end=end_date)
+# Fetch stock data
+@st.cache
+def get_data(ticker, start, end):
+    return yf.download(ticker, start=start, end=end)
+
+data = get_data(ticker, start_date, end_date)
 
 # Calculate MACD
 def calculate_macd(data, short_window=12, long_window=26, signal_window=9):
@@ -72,21 +80,20 @@ def macd_crossover_analysis(data):
     crossovers = []
     for i in range(1, len(data)):
         if data['MACD'][i-1] < data['Signal_Line'][i-1] and data['MACD'][i] > data['Signal_Line'][i]:
-            crossovers.append((data.index[i], 'Bullish'))
+            crossovers.append((data.index[i], 'Bullish', data['MACD'][i], data['Close'][i]))
         elif data['MACD'][i-1] > data['Signal_Line'][i-1] and data['MACD'][i] < data['Signal_Line'][i]:
-            crossovers.append((data.index[i], 'Bearish'))
+            crossovers.append((data.index[i], 'Bearish', data['MACD'][i], data['Close'][i]))
     return crossovers
 
-def stock_performance(data, crossovers, periods=[5, 14, 30]):
+def stock_performance(data, crossovers, periods=[7, 14, 30]):
     performance = []
-    for date, signal in crossovers:
-        row = {'Date': date, 'Signal': signal}
+    for date, signal, macd_value, price in crossovers:
+        row = {'Date': date, 'Signal': signal, 'MACD': macd_value, 'Price': price}
         for period in periods:
             future_date = date + timedelta(days=period)
             if future_date in data.index:
                 future_price = data.loc[future_date, 'Close']
-                current_price = data.loc[date, 'Close']
-                row[f'{period}D Later'] = (future_price - current_price) / current_price * 100
+                row[f'{period}D Later'] = (future_price - price) / price * 100
             else:
                 row[f'{period}D Later'] = np.nan
         performance.append(row)

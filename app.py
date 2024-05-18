@@ -56,7 +56,9 @@ if st.sidebar.button('Analyze'):
                 'Percentage Change 10 Days': ((window_10['Close'].iloc[-1] - df.at[date, 'Close']) / df.at[
                     date, 'Close']) * 100 if len(window_10) > 1 else np.nan,
                 'Percentage Change 30 Days': ((window_30['Close'].iloc[-1] - df.at[date, 'Close']) / df.at[
-                    date, 'Close']) * 100 if len(window_30) > 1 else np.nan
+                    date, 'Close']) * 100 if len(window_30) > 1 else np.nan,
+                '10 Days Data Available': 'Yes' if len(window_10) > 1 else 'No',
+                '30 Days Data Available': 'Yes' if len(window_30) > 1 else 'No'
             })
         return pd.DataFrame(performance).sort_values(by='Date', ascending=False).head(5)
 

@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6fa4509a-eb56-4942-aab0-c9b15a233e1b" name="Changes" comment="added helpful learning text">
+    <list default="true" id="6fa4509a-eb56-4942-aab0-c9b15a233e1b" name="Changes" comment="added 30 day calcs and handling of recent instances">
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -103,7 +103,15 @@
       <option name="project" value="LOCAL" />
       <updated>1715999250120</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="added 30 day calcs and handling of recent instances">
+      <option name="closed" value="true" />
+      <created>1715999499148</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1715999499148</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -111,6 +119,7 @@
     <MESSAGE value="added helpful text" />
     <MESSAGE value="added 30 day calcs" />
     <MESSAGE value="added helpful learning text" />
-    <option name="LAST_COMMIT_MESSAGE" value="added helpful learning text" />
+    <MESSAGE value="added 30 day calcs and handling of recent instances" />
+    <option name="LAST_COMMIT_MESSAGE" value="added 30 day calcs and handling of recent instances" />
   </component>
 </project>

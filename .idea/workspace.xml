@@ -4,8 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6fa4509a-eb56-4942-aab0-c9b15a233e1b" name="Changes" comment="added 30 day calcs and handling of recent instances">
+    <list default="true" id="6fa4509a-eb56-4942-aab0-c9b15a233e1b" name="Changes" comment="added 30 day calcs and better handling of recent instances">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -111,7 +113,15 @@
       <option name="project" value="LOCAL" />
       <updated>1715999499148</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="added 30 day calcs and better handling of recent instances">
+      <option name="closed" value="true" />
+      <created>1715999673028</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1715999673028</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -120,6 +130,7 @@
     <MESSAGE value="added 30 day calcs" />
     <MESSAGE value="added helpful learning text" />
     <MESSAGE value="added 30 day calcs and handling of recent instances" />
-    <option name="LAST_COMMIT_MESSAGE" value="added 30 day calcs and handling of recent instances" />
+    <MESSAGE value="added 30 day calcs and better handling of recent instances" />
+    <option name="LAST_COMMIT_MESSAGE" value="added 30 day calcs and better handling of recent instances" />
   </component>
 </project>

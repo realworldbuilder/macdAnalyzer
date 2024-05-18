@@ -1,6 +1,7 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
+import numpy as np
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 from datetime import datetime
@@ -46,23 +47,30 @@ if st.sidebar.button('Analyze'):
             window_10 = df.loc[date:end_date_10]
             window_30 = df.loc[date:min(end_date_30, df.index[-1])]
 
+            close_after_10_days = window_10['Close'].iloc[-1] if len(window_10) > 1 else np.nan
+            close_after_30_days = window_30['Close'].iloc[-1] if end_date_30 <= df.index[-1] else np.nan
+
             performance.append({
                 'Date': date.strftime('%Y-%m-%d'),
                 'Close at Cross': df.at[date, 'Close'],
                 'High After Cross': window_10['Close'].max(),
                 'Low After Cross': window_10['Close'].min(),
-                'Close After 10 Days': window_10['Close'].iloc[-1] if len(window_10) > 1 else np.nan,
-                'Close After 30 Days': window_30['Close'].iloc[-1] if len(window_30) > 1 else np.nan,
-                'Percentage Change 10 Days': ((window_10['Close'].iloc[-1] - df.at[date, 'Close']) / df.at[
-                    date, 'Close']) * 100 if len(window_10) > 1 else np.nan,
-                'Percentage Change 30 Days': ((window_30['Close'].iloc[-1] - df.at[date, 'Close']) / df.at[
-                    date, 'Close']) * 100 if len(window_30) > 1 else np.nan,
-                '10 Days Data Available': 'Yes' if len(window_10) > 1 else 'No',
-                '30 Days Data Available': 'Yes' if len(window_30) > 1 else 'No'
+                'Close After 10 Days': close_after_10_days,
+                'Close After 30 Days': close_after_30_days,
+                'Percentage Change 10 Days': ((close_after_10_days - df.at[date, 'Close']) / df.at[
+                    date, 'Close']) * 100 if not np.isnan(close_after_10_days) else np.nan,
+                'Percentage Change 30 Days': ((close_after_30_days - df.at[date, 'Close']) / df.at[
+                    date, 'Close']) * 100 if not np.isnan(close_after_30_days) else np.nan,
+                '10 Days Data Available': 'Yes' if end_date_10 <= df.index[-1] else 'No',
+                '30 Days Data Available': 'Yes' if end_date_30 <= df.index[-1] else 'No'
             })
         return pd.DataFrame(performance).sort_values(by='Date', ascending=False).head(5)
 
+    # Assuming df is your DataFrame
+    post_cross_data = post_cross_performance(df)
 
+
+    # Assuming df is your DataFrame
     post_cross_data = post_cross_performance(df)
 
     # Plotting both price and MACD

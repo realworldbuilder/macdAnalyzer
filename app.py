@@ -34,24 +34,32 @@ if st.sidebar.button('Analyze'):
     df = fetch_and_calculate_macd(stock_symbol)
     df['Cross'] = ((df['MACD'].shift(1) < df['Signal'].shift(1)) & (df['MACD'] >= df['Signal']) & (df['MACD'] < 0))
 
+
     # Performance calculation after cross
     def post_cross_performance(df):
         crosses = df[df['Cross']].index
         performance = []
         for date in crosses:
-            end_date = date + pd.DateOffset(days=10)
-            if end_date > df.index[-1]:
+            end_date_10 = date + pd.DateOffset(days=10)
+            end_date_30 = date + pd.DateOffset(days=30)
+            if end_date_10 > df.index[-1] or end_date_30 > df.index[-1]:
                 continue
-            window = df.loc[date:end_date]
+            window_10 = df.loc[date:end_date_10]
+            window_30 = df.loc[date:end_date_30]
             performance.append({
                 'Date': date.strftime('%Y-%m-%d'),
                 'Close at Cross': df.at[date, 'Close'],
-                'High After Cross': window['Close'].max(),
-                'Low After Cross': window['Close'].min(),
-                'Close After 10 Days': window['Close'].iloc[-1],
-                'Percentage Change': ((window['Close'].iloc[-1] - df.at[date, 'Close']) / df.at[date, 'Close']) * 100
+                'High After Cross': window_10['Close'].max(),
+                'Low After Cross': window_10['Close'].min(),
+                'Close After 10 Days': window_10['Close'].iloc[-1],
+                'Close After 30 Days': window_30['Close'].iloc[-1],
+                'Percentage Change 10 Days': ((window_10['Close'].iloc[-1] - df.at[date, 'Close']) / df.at[
+                    date, 'Close']) * 100,
+                'Percentage Change 30 Days': ((window_30['Close'].iloc[-1] - df.at[date, 'Close']) / df.at[
+                    date, 'Close']) * 100
             })
         return pd.DataFrame(performance).sort_values(by='Date', ascending=False).head(5)
+
 
     post_cross_data = post_cross_performance(df)
 

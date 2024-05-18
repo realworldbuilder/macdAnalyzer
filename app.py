@@ -2,94 +2,83 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import numpy as np
-import plotly.graph_objs as go
-from plotly.subplots import make_subplots
-from datetime import datetime
+import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
 
-# Introduction and explanation of MACD
-st.title('MACD Analyzer')
-st.markdown("""
-This application analyzes the Moving Average Convergence Divergence (MACD), which is a trend-following momentum indicator that shows the relationship between two moving averages of a stock's prices.
-""")
+st.title('Stock MACD and RSI Analysis')
 
-# Fetch and calculate MACD
-def fetch_and_calculate_macd(stock_symbol, start_date=None):
-    if start_date is None:
-        start_date = datetime.now() - pd.DateOffset(years=3)
-    end_date = datetime.now()
-    df = yf.download(stock_symbol, start=start_date, end=end_date)
-    df['EMA12'] = df['Close'].ewm(span=12, adjust=False).mean()  # 12-period EMA
-    df['EMA26'] = df['Close'].ewm(span=26, adjust=False).mean()  # 26-period EMA
-    df['MACD'] = df['EMA12'] - df['EMA26']  # MACD line
-    df['Signal'] = df['MACD'].ewm(span=9, adjust=False).mean()  # Signal line
-    return df
+# User input for ticker symbol
+ticker = st.text_input('Enter stock ticker:', 'AAPL')
 
-# Input for name
-stock_symbol = st.sidebar.text_input('Enter stock symbol', value='AAPL')
-st.sidebar.write("""
-The MACD is calculated by subtracting the 26-period Exponential Moving Average (EMA) from the 12-period EMA. The result of that subtraction is the MACD line.
-""")
+# User input for date range
+start_date = st.date_input('Start date', datetime.today() - timedelta(days=365))
+end_date = st.date_input('End date', datetime.today())
 
-# Analyze button
-if st.sidebar.button('Analyze'):
-    df = fetch_and_calculate_macd(stock_symbol)
-    df['Cross'] = ((df['MACD'].shift(1) < df['Signal'].shift(1)) & (df['MACD'] >= df['Signal']) & (df['MACD'] < 0))
+# Fetch data
+data = yf.download(ticker, start=start_date, end=end_date)
 
+# Calculate MACD
+def calculate_macd(data, short_window=12, long_window=26, signal_window=9):
+    data['EMA_12'] = data['Close'].ewm(span=short_window, adjust=False).mean()
+    data['EMA_26'] = data['Close'].ewm(span=long_window, adjust=False).mean()
+    data['MACD'] = data['EMA_12'] - data['EMA_26']
+    data['Signal_Line'] = data['MACD'].ewm(span=signal_window, adjust=False).mean()
+    return data
 
-    # Performance calculation after cross
-    def post_cross_performance(df):
-        crosses = df[df['Cross']].index
-        performance = []
-        for date in crosses:
-            end_date_10 = date + pd.DateOffset(days=10)
-            end_date_30 = date + pd.DateOffset(days=30)
+# Calculate RSI
+def calculate_rsi(data, window=14):
+    delta = data['Close'].diff(1)
+    gain = (delta.where(delta > 0, 0)).fillna(0)
+    loss = (-delta.where(delta < 0, 0)).fillna(0)
+    avg_gain = gain.rolling(window=window, min_periods=1).mean()
+    avg_loss = loss.rolling(window=window, min_periods=1).mean()
+    rs = avg_gain / avg_loss
+    data['RSI'] = 100 - (100 / (1 + rs))
+    return data
 
-            window_10 = df.loc[date:end_date_10]
-            window_30 = df.loc[date:min(end_date_30, df.index[-1])]
+# Apply calculations
+data = calculate_macd(data)
+data = calculate_rsi(data)
 
-            close_after_10_days = window_10['Close'].iloc[-1] if len(window_10) > 1 else np.nan
-            close_after_30_days = window_30['Close'].iloc[-1] if end_date_30 <= df.index[-1] else np.nan
+# Plotting
+fig, (ax1, ax2, ax3) = plt.subplots(3, figsize=(12, 8), sharex=True)
 
-            performance.append({
-                'Date': date.strftime('%Y-%m-%d'),
-                'Close at Cross': df.at[date, 'Close'],
-                'High After Cross': window_10['Close'].max(),
-                'Low After Cross': window_10['Close'].min(),
-                'Close After 10 Days': close_after_10_days,
-                'Close After 30 Days': close_after_30_days,
-                'Percentage Change 10 Days': ((close_after_10_days - df.at[date, 'Close']) / df.at[
-                    date, 'Close']) * 100 if not np.isnan(close_after_10_days) else np.nan,
-                'Percentage Change 30 Days': ((close_after_30_days - df.at[date, 'Close']) / df.at[
-                    date, 'Close']) * 100 if not np.isnan(close_after_30_days) else np.nan,
-                '10 Days Data Available': 'Yes' if end_date_10 <= df.index[-1] else 'No',
-                '30 Days Data Available': 'Yes' if end_date_30 <= df.index[-1] else 'No'
-            })
-        return pd.DataFrame(performance).sort_values(by='Date', ascending=False).head(5)
+# Price plot
+ax1.plot(data['Close'], label='Close Price')
+ax1.set_title('Close Price')
+ax1.legend()
 
-    # Assuming df is your DataFrame
-    post_cross_data = post_cross_performance(df)
+# MACD plot
+ax2.plot(data['MACD'], label='MACD')
+ax2.plot(data['Signal_Line'], label='Signal Line')
+ax2.set_title('MACD')
+ax2.legend()
 
+# RSI plot
+ax3.plot(data['RSI'], label='RSI')
+ax3.set_title('RSI')
+ax3.legend()
 
-    # Assuming df is your DataFrame
-    post_cross_data = post_cross_performance(df)
+# Show plot in Streamlit
+st.pyplot(fig)
 
-    # Plotting both price and MACD
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1,
-                        subplot_titles=('Stock Price', 'MACD and Signal Line'))
-    fig.add_trace(go.Scatter(x=df.index, y=df['Close'], name='Close'), row=1, col=1)
-    fig.add_trace(go.Scatter(x=df.index, y=df['MACD'], name='MACD', line=dict(color='blue')), row=2, col=1)
-    fig.add_trace(go.Scatter(x=df.index, y=df['Signal'], name='Signal', line=dict(color='red')), row=2, col=1)
-    fig.update_layout(height=600, width=700, title_text="Stock Analysis", template="plotly_white")
-    st.plotly_chart(fig, use_container_width=True)
+# Detect crossovers
+def detect_crossovers(data):
+    data['Crossover'] = np.where((data['MACD'] > data['Signal_Line']) & (data['MACD'].shift(1) <= data['Signal_Line'].shift(1)), 1, 0)
+    data['Crossover'] = np.where((data['MACD'] < data['Signal_Line']) & (data['MACD'].shift(1) >= data['Signal_Line'].shift(1)), -1, data['Crossover'])
+    return data
 
-    # Dataframe displaying last 5 MACD crossovers and performance
-    if not post_cross_data.empty:
-        st.write('Last 5 MACD Crossovers and Subsequent 10-day Performance:')
-        st.table(post_cross_data)
+data = detect_crossovers(data)
 
-st.write("""
-### Understanding MACD:
-- **MACD Line:** The difference between the 12-period and 26-period exponential moving averages (EMAs).
-- **Signal Line:** The 9-period EMA of the MACD line, which acts as a trigger for buy and sell signals.
-- **Crossovers:** When the MACD line crosses above the signal line, it is considered a bullish signal, and when it crosses below, it is considered bearish.
-""")
+# Performance analysis
+def performance_analysis(data):
+    crossovers = data[data['Crossover'] != 0]
+    results = []
+
+    for index, row in crossovers.iterrows():
+        future_data = data.loc[index:]
+        if len(future_data) > 30:
+            performance_5d = (future_data['Close'].iloc[5] - row['Close']) / row['Close']
+            performance_14d = (future_data['Close'].iloc[14] - row['Close']) / row['Close']
+            performance_30d = (future_data['Close'].iloc[30] - row['Close']) / row['Close']
+            results.append([index, row['Crossover'], performance_5d, performance_14d, performance_30d])

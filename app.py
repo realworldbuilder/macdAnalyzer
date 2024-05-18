@@ -42,21 +42,21 @@ if st.sidebar.button('Analyze'):
         for date in crosses:
             end_date_10 = date + pd.DateOffset(days=10)
             end_date_30 = date + pd.DateOffset(days=30)
-            if end_date_10 > df.index[-1] or end_date_30 > df.index[-1]:
-                continue
+
             window_10 = df.loc[date:end_date_10]
-            window_30 = df.loc[date:end_date_30]
+            window_30 = df.loc[date:min(end_date_30, df.index[-1])]
+
             performance.append({
                 'Date': date.strftime('%Y-%m-%d'),
                 'Close at Cross': df.at[date, 'Close'],
                 'High After Cross': window_10['Close'].max(),
                 'Low After Cross': window_10['Close'].min(),
-                'Close After 10 Days': window_10['Close'].iloc[-1],
-                'Close After 30 Days': window_30['Close'].iloc[-1],
+                'Close After 10 Days': window_10['Close'].iloc[-1] if len(window_10) > 1 else np.nan,
+                'Close After 30 Days': window_30['Close'].iloc[-1] if len(window_30) > 1 else np.nan,
                 'Percentage Change 10 Days': ((window_10['Close'].iloc[-1] - df.at[date, 'Close']) / df.at[
-                    date, 'Close']) * 100,
+                    date, 'Close']) * 100 if len(window_10) > 1 else np.nan,
                 'Percentage Change 30 Days': ((window_30['Close'].iloc[-1] - df.at[date, 'Close']) / df.at[
-                    date, 'Close']) * 100
+                    date, 'Close']) * 100 if len(window_30) > 1 else np.nan
             })
         return pd.DataFrame(performance).sort_values(by='Date', ascending=False).head(5)
 
